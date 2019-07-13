@@ -64,7 +64,7 @@ namespace SpaceTransferTest
             }
             catch (ArgumentException ex)
             {
-                Assert.AreEqual("intergalactic unit was not defined: how", ex.Message);
+                Assert.AreEqual(Constants.ER_MS_UNDEFINED_UNIT, ex.Message);
             }
         }
 
@@ -79,7 +79,7 @@ namespace SpaceTransferTest
             }
             catch (ArgumentException ex)
             {
-                Assert.AreEqual("I have no idea what you are talking about", ex.Message);
+                Assert.AreEqual(Constants.ER_MS_NO_IDEA, ex.Message);
             }
         }
 

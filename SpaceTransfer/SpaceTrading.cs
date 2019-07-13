@@ -26,6 +26,7 @@ namespace SpaceTransfer
         private List<CurrencyUnit> ListCurrencyUnit { get; set; }
         private List<TradeItem> ListItemTrading { get; set; }
 
+        //Load data for CurrencyUnit & Trading items
         private void LoadData()
         {
             ListCurrencyUnit = LoadCurrencyUnit();
@@ -48,19 +49,26 @@ namespace SpaceTransfer
                     };
             ListItemTrading = null;
         }
+
+        /// <summary>
+        /// save down trading units & trading items to files
+        /// </summary>
         private void Save()
         {
             File.WriteAllText(Constants.ITEMS_JS_FILE, JsonConvert.SerializeObject(ListItemTrading));
             File.WriteAllText(Constants.UNITS_JS_FILE, JsonConvert.SerializeObject(ListCurrencyUnit));
         }
 
+        /// <summary>
+        /// load trading items from json file, if file not exist, return null
+        /// </summary>
+        /// <returns></returns>
         private List<TradeItem> LoadItemTrading()
         {
-            //load from json
-            List<TradeItem> items;
+            //load from json items file
             try
             {
-                items = JsonConvert.DeserializeObject<List<TradeItem>>(File.ReadAllText(Constants.ITEMS_JS_FILE));
+                var items = JsonConvert.DeserializeObject<List<TradeItem>>(File.ReadAllText(Constants.ITEMS_JS_FILE));
                 return items;
             }
             catch (Exception)
@@ -70,20 +78,22 @@ namespace SpaceTransfer
 
         }
 
+        /// <summary>
+        /// load currency from json file, if not exist, instance default with Roman numer and value
+        /// </summary>
+        /// <returns></returns>
         private List<CurrencyUnit> LoadCurrencyUnit()
         {
-            //load from json
-            List<CurrencyUnit> units;
+            //load from unit json file
             try
             {
-                units = JsonConvert.DeserializeObject<List<CurrencyUnit>>(File.ReadAllText(Constants.UNITS_JS_FILE));
+                var units = JsonConvert.DeserializeObject<List<CurrencyUnit>>(File.ReadAllText(Constants.UNITS_JS_FILE));
                 return units;
             }
             catch (Exception)
             {
-
                 //instance new default, can be update by query
-                units = new List<CurrencyUnit>
+                return new List<CurrencyUnit>
                     {
                         new CurrencyUnit{ Value = 1, RomanNumeral = "I"},
                         new CurrencyUnit{ Value = 5, RomanNumeral = "V"},
@@ -93,18 +103,23 @@ namespace SpaceTransfer
                         new CurrencyUnit{ Value = 500, RomanNumeral = "D"},
                         new CurrencyUnit{ Value = 1000, RomanNumeral = "M"}
                     };
-
-                return units;
             }
         }
 
+        /// <summary>
+        /// validate input query string
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public bool ValidateInput(string input)
         {
             string[] arr = input.Split(null);
             int len = arr.Length;
             string pattern = "";
 
-            //
+            Regex regexRomanNumber = new Regex(Constants.RX_ROMANNUMBER);
+
+            //input query purpose is defined trading item
             if (input.Contains(Constants.IS) && input.Contains(Constants.CREDITS))
             {
                 Regex regexDefinedTradeItem = new Regex(Constants.RX_DEFINEDTRADEITEM);
@@ -115,77 +130,75 @@ namespace SpaceTransfer
                 //loop in galactic units, exclude after key itemtrade
                 for (int i = 0; i < len - 4; i++)
                 {
+                    // if intergalactic unit in input string not exist in List units defined, exception throw
                     if (!ListCurrencyUnit.Any(u => u.GalaxyUnit == arr[i]))
                     {
 
-                        throw new ArgumentException($"intergalactic unit was not defined: {arr[i]}");
+                        throw new ArgumentException($"{Constants.ER_MS_UNDEFINED_UNIT}: {arr[i]}");
                     }
-                    else
-                    {
-                        arr[i] = ListCurrencyUnit.FirstOrDefault(u => u.GalaxyUnit == arr[i]).RomanNumeral;
-                    }
+                    //else if intergalactic unit is valid, convert it to Roman numeral 
+                    arr[i] = ListCurrencyUnit.FirstOrDefault(u => u.GalaxyUnit == arr[i]).RomanNumeral;
                 }
                 Array.Resize(ref arr, len - 4);
                 pattern = string.Join("", arr);
-                //convert galactic unit to Roman number 
-                Regex regexRomanNumber = new Regex(Constants.RX_ROMANNUMBER);
+
                 if (!regexRomanNumber.Match(pattern).Success)
                 {
                     return false;
                 }
                 return true;
             }
-            else if (input.Contains(Constants.IS) && !input.Contains(Constants.CREDITS))
+
+            //input query string is use to mapping intergalactic unit name with roman numeral
+            if (input.Contains(Constants.IS) && !input.Contains(Constants.CREDITS))
             {
                 //just defined roman number
                 Regex regexDefinedRomanNumber = new Regex(Constants.RX_DEFINED_ROMANNAME);
                 return regexDefinedRomanNumber.Match(input).Success;
             }
-            else
-            {
-                for (int i = 0; i < len; i++)
-                {
 
-                    if (!ListCurrencyUnit.Any(p => p.GalaxyUnit == arr[i]))
+            //input query string is use to calculate value 
+            //loop for unit arrays
+            for (int i = 0; i < len; i++)
+            {
+                //if this unit in query is not defined
+                if (!ListCurrencyUnit.Any(p => p.GalaxyUnit == arr[i]))
+                {
+                    //check last item in query input, for trading item is it?
+                    if (i == len - 1)
                     {
-                        if (i == len - 1)
+                        //this is itemtrading if it exist, else exception
+                        if (ListItemTrading != null)
                         {
-                            //this is itemtrading if it exist, else exception
-                            if (ListItemTrading != null)
+                            if (ListItemTrading.Any(p => p.ItemName == arr[i]))
                             {
-                                if (ListItemTrading.Any(p => p.ItemName == arr[i]))
-                                {
-                                    Array.Resize(ref arr, len - 1);
-                                }
-                                else
-                                {
-                                    throw new ArgumentException($"trading item was not defined: {arr[i]}");
-                                }
+                                Array.Resize(ref arr, len - 1);
                             }
                             else
                             {
-                                //it's not unit or item.
-                                throw new ArgumentException("I have no idea what you are talking about");
+                                throw new ArgumentException($"{Constants.ER_MS_UNDEFINED_ITEM}: {arr[i]}");
                             }
-
                         }
-
-                        if (i != len - 1)
+                        else
                         {
-                            throw new ArgumentException($"intergalactic unit was not defined: {arr[i]}");
+                            //it's not unit or item.
+                            throw new ArgumentException(Constants.ER_MS_NO_IDEA);
                         }
                     }
-                    else
+                    // if this item in query in middle of string query input, and it is not defined, then throw exception
+                    if (i != len - 1)
                     {
-                        arr[i] = ListCurrencyUnit.FirstOrDefault(u => u.GalaxyUnit == arr[i]).RomanNumeral;
+                        throw new ArgumentException($"{Constants.ER_MS_UNDEFINED_UNIT}");
                     }
                 }
-                pattern = string.Join("", arr);
-                //just validate romman number
-                Regex regexRomanNumber = new Regex(Constants.RX_ROMANNUMBER);
-                return regexRomanNumber.Match(pattern).Success;
+                else
+                {
+                    arr[i] = ListCurrencyUnit.FirstOrDefault(u => u.GalaxyUnit == arr[i]).RomanNumeral;
+                }
             }
-
+            pattern = string.Join("", arr);
+            //just validate romman number
+            return regexRomanNumber.Match(pattern).Success;
         }
 
         /// <summary>
@@ -276,7 +289,7 @@ namespace SpaceTransfer
                         if (len == 1)
                         {
                             //query input is item trading, throw argument exception
-                            throw new ArgumentException($"Invalid format, How many {intergalaticArr[len - 1]} you wanna exchange to credit?");
+                            throw new ArgumentException(Constants.ER_MS_NO_IDEA);
                         }
                         Array.Resize(ref intergalaticArr, len - 1);
                     }
@@ -313,7 +326,7 @@ namespace SpaceTransfer
 
             for (int i = 0; i < intergalacticUnitString.Length; i++)
             {
-                arr[i] = ListCurrencyUnit.Where(p => p.GalaxyUnit.Equals(intergalacticUnitString[i].ToString())).First();
+                arr[i] = ListCurrencyUnit.FirstOrDefault(p => p.GalaxyUnit == intergalacticUnitString[i].ToString());
             }
             return arr;
         }
