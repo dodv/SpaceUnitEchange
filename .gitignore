@@ -12,3 +12,4 @@
 /WebApplication/obj/Debug
 /WebApplication/WebApplication.csproj.user
 /WebApplication/ApplicationInsights.config
+*.suo
