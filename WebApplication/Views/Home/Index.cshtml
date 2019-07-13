@@ -1,0 +1,131 @@
+﻿@model WebApplication.Models.ViewModel
+@{
+    ViewBag.Title = "Home Page";
+}
+<div>
+    <div style="width:100%;overflow:hidden">
+        <table style="float:left;">
+            <tr>
+                <th colspan="3">Intergalactic units - Roman number mapping</th>
+            </tr>
+            <tr>
+                <th>Intergalactic name    </th>
+                <th>Roman number    </th>
+                <th>Value</th>
+            </tr>
+            @if (Model.ListCurrencyUnit != null)
+            {
+                foreach (var unit in Model.ListCurrencyUnit)
+                {
+                    <tr>
+                        <td>@(String.IsNullOrEmpty(unit.GalaxyUnit) ? "undefined" : unit.GalaxyUnit) </td>
+                        <td>@unit.RomanNumeral</td>
+                        <td>@unit.Value.ToString()</td>
+                    </tr>
+                }
+            }
+        </table>
+
+        <table style="float:right">
+            <tr>
+                <th colspan="2">Galaxy Items trading </th>
+            </tr>
+            <tr>
+                <th>Name  </th>
+                <th>Rate per unit (Credits)  </th>
+            </tr>
+            @if (Model.ListItemTrading != null && Model.ListItemTrading.Count > 0)
+            {
+                foreach (var item in Model.ListItemTrading)
+                {
+                    <tr>
+                        <td>@item.ItemName</td>
+                        <td>@item.RatePerUnit.ToString()</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+    <hr />
+    <div style="width:100%">
+        <form role="form" method="post">
+            <div>
+                <label>Query</label>
+                <input style="color:@(Model.Status? "blue":"red")" type="text" name="query" id="query" value="@Model.InputString" />
+                <button type="submit">Submit</button>
+
+
+            </div>
+            <div>
+                <h2>Exchange Result: @Model.Result @(Model.IsCredit ? "Credits" : "")</h2>
+
+            </div>
+            <div>
+                <label style="color:@(Model.Status? "blue":"red")">@Model.Message</label>
+            </div>
+        </form>
+    </div>
+    <hr />
+    <table style="float:left; width:100%">
+        <tr>
+            <th colspan="3">Query sample, becareful with keys word "is" or "Credits" </th>
+        </tr>
+        <tr>
+            <th>defined mapping </th>
+            <th>defined item trading    </th>
+            <th>query calculate</th>
+        </tr>
+        <tr>
+            <td>
+                <p>glek is I                        </p>
+                <p>prob is V                        </p>
+                <p>pash is X                        </p>
+                <p>teskj is L                       </p>
+            </td>
+            <td>
+                <p>glek glek Silver is 34 Credits   </p>
+                <p>glek prob Gold is 57800 Credits  </p>
+                <p>pash pash Iron is 3910 Credits   </p>
+            </td>
+            <td>
+                <p>pash teskj glek glek             </p>
+                <p>glek prob Silver                 </p>
+                <p>glek glek Gold                   </p>
+                <p>pash teskj glek Iron             </p>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+
+
+<style>
+    table {
+        font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 45%;
+        margin: 10px;
+    }
+
+        table td, table th {
+            border: 1px solid #ddd;
+            padding: 5px;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        table tr:hover {
+            background-color: #ddd;
+        }
+
+        table th {
+            padding-top: 5px;
+            padding-bottom: 5px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+</style>

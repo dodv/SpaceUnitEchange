@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/config
+/packages
+/SpaceTransfer/bin/Debug
+/SpaceTransfer/obj/Debug
+/SpaceTransferTest/bin/Debug
+/SpaceTransferTest/obj/Debug
+/WebApplication/bin
+/WebApplication/obj/Debug
+/WebApplication/WebApplication.csproj.user
+/WebApplication/ApplicationInsights.config
