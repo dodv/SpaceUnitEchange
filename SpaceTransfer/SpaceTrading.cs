@@ -22,22 +22,6 @@ namespace SpaceTransfer
                 return instance;
             }
         }
-        //string key
-        private const string CREDITS = "Credits";
-        private const string IS = "is";
-        private const string MS_DEFINED = "you have just added unit successfully";
-        private const string MS_ERR_VALIDATE = "Invalid format";
-        private const string MS_EXSUCCESS = "Exchange successfully";
-
-        private const string UNITS_JS_FILE = @"C:\units.json";
-        private const string ITEMS_JS_FILE = @"C:\items.json";
-
-        //for match intergalactic unit name vs Roman number
-        private const string RX_DEFINED_ROMANNAME = @"\b\w*\s*(is)\s*(I|V|X|L|C|D|M)\b";
-        // intergalactic unit name vs trade item
-        private const string RX_DEFINEDTRADEITEM = @"^(\w+\s+)+(is){1}\s+([0-9]+)+\s+(Credits){1}$";
-        private const string RX_ROMANNUMBER = @"^M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$";
-
 
         private List<CurrencyUnit> ListCurrencyUnit { get; set; }
         private List<TradeItem> ListItemTrading { get; set; }
@@ -66,8 +50,8 @@ namespace SpaceTransfer
         }
         private void Save()
         {
-            File.WriteAllText(ITEMS_JS_FILE, JsonConvert.SerializeObject(ListItemTrading));
-            File.WriteAllText(UNITS_JS_FILE, JsonConvert.SerializeObject(ListCurrencyUnit));
+            File.WriteAllText(Constants.ITEMS_JS_FILE, JsonConvert.SerializeObject(ListItemTrading));
+            File.WriteAllText(Constants.UNITS_JS_FILE, JsonConvert.SerializeObject(ListCurrencyUnit));
         }
 
         private List<TradeItem> LoadItemTrading()
@@ -76,7 +60,7 @@ namespace SpaceTransfer
             List<TradeItem> items;
             try
             {
-                items = JsonConvert.DeserializeObject<List<TradeItem>>(File.ReadAllText(ITEMS_JS_FILE));
+                items = JsonConvert.DeserializeObject<List<TradeItem>>(File.ReadAllText(Constants.ITEMS_JS_FILE));
                 return items;
             }
             catch (Exception)
@@ -92,7 +76,7 @@ namespace SpaceTransfer
             List<CurrencyUnit> units;
             try
             {
-                units = JsonConvert.DeserializeObject<List<CurrencyUnit>>(File.ReadAllText(UNITS_JS_FILE));
+                units = JsonConvert.DeserializeObject<List<CurrencyUnit>>(File.ReadAllText(Constants.UNITS_JS_FILE));
                 return units;
             }
             catch (Exception)
@@ -121,9 +105,9 @@ namespace SpaceTransfer
             string pattern = "";
 
             //
-            if (input.Contains(IS) && input.Contains(CREDITS))
+            if (input.Contains(Constants.IS) && input.Contains(Constants.CREDITS))
             {
-                Regex regexDefinedTradeItem = new Regex(RX_DEFINEDTRADEITEM);
+                Regex regexDefinedTradeItem = new Regex(Constants.RX_DEFINEDTRADEITEM);
                 if (!regexDefinedTradeItem.Match(input).Success)
                 {
                     return false;
@@ -144,17 +128,17 @@ namespace SpaceTransfer
                 Array.Resize(ref arr, len - 4);
                 pattern = string.Join("", arr);
                 //convert galactic unit to Roman number 
-                Regex regexRomanNumber = new Regex(RX_ROMANNUMBER);
+                Regex regexRomanNumber = new Regex(Constants.RX_ROMANNUMBER);
                 if (!regexRomanNumber.Match(pattern).Success)
                 {
                     return false;
                 }
                 return true;
             }
-            else if (input.Contains(IS) && !input.Contains(CREDITS))
+            else if (input.Contains(Constants.IS) && !input.Contains(Constants.CREDITS))
             {
                 //just defined roman number
-                Regex regexDefinedRomanNumber = new Regex(RX_DEFINED_ROMANNAME);
+                Regex regexDefinedRomanNumber = new Regex(Constants.RX_DEFINED_ROMANNAME);
                 return regexDefinedRomanNumber.Match(input).Success;
             }
             else
@@ -198,7 +182,7 @@ namespace SpaceTransfer
                 }
                 pattern = string.Join("", arr);
                 //just validate romman number
-                Regex regexRomanNumber = new Regex(RX_ROMANNUMBER);
+                Regex regexRomanNumber = new Regex(Constants.RX_ROMANNUMBER);
                 return regexRomanNumber.Match(pattern).Success;
             }
 
@@ -213,7 +197,7 @@ namespace SpaceTransfer
             string[] arr = def.Split(null);
             int len = arr.Length;
 
-            if (len == 3 && arr[len - 2].Equals(IS))
+            if (len == 3 && arr[len - 2].Equals(Constants.IS))
             {
                 //defined name of roman number
                 foreach (var cr in ListCurrencyUnit)
@@ -225,7 +209,7 @@ namespace SpaceTransfer
                 }
             }
 
-            if (len > 4 && arr[len - 1].Equals(CREDITS) && arr[len - 3].Equals(IS))
+            if (len > 4 && arr[len - 1].Equals(Constants.CREDITS) && arr[len - 3].Equals(Constants.IS))
             {
                 //defined or update trade item rate
                 decimal total = Convert.ToDecimal(arr[len - 2]);
@@ -271,10 +255,10 @@ namespace SpaceTransfer
             bool isCredit = false;
             if (validateString)
             {
-                if (intergalacticString.Contains(IS) || intergalacticString.Contains(CREDITS))
+                if (intergalacticString.Contains(Constants.IS) || intergalacticString.Contains(Constants.CREDITS))
                 {
                     CurrencyUnitDefined(intergalacticString);
-                    return new ExchangeResult { Message = MS_DEFINED, Status = true };
+                    return new ExchangeResult { Message = Constants.MS_DEFINED, Status = true };
                 }
 
                 var intergalaticArr = intergalacticString.Split(null);
@@ -300,9 +284,9 @@ namespace SpaceTransfer
 
                 var arrCur = ConvertIntergalacticToArrayUnit(intergalaticArr);
                 var calc = CalculateValueOfCurrencyArray(arrCur) * itemRateChange;
-                return new ExchangeResult { Message = MS_EXSUCCESS, Status = true, Result = calc, IsCredit = isCredit };
+                return new ExchangeResult { Message = Constants.MS_EXSUCCESS, Status = true, Result = calc, IsCredit = isCredit };
             }
-            return new ExchangeResult { Message = MS_ERR_VALIDATE, Status = false };
+            return new ExchangeResult { Message = Constants.MS_ERR_VALIDATE, Status = false };
         }
 
         /// <summary>
